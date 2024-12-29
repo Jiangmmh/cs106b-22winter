@@ -1,11 +1,42 @@
 #include "Matchmaker.h"
 using namespace std;
 
-bool hasPerfectMatching(const Map<string, Set<string>>& possibleLinks, Set<Pair>& matching) {
-    /* TODO: Delete this comment and these remaining lines, then implement this function. */
-    (void) possibleLinks;
-    (void) matching;
+bool hasPerfectMatchingHelper(const Map<string, Set<string>>& possibleLinks, Set<Pair>& matching) {
+    // 存入matching的piar数量 == 总人数
+    if (possibleLinks.isEmpty())
+        return true;
+    if (possibleLinks.size() < 2)
+        return false;
+
+    Set<Pair> havePaired;
+    for (string key : possibleLinks.keys()) {
+        if (possibleLinks[key].isEmpty())
+            return false;
+        for (string partner : possibleLinks[key]) {
+            Pair matchRev(partner, key);
+            if (havePaired.contains(matchRev))
+                continue;
+
+            if (!possibleLinks.containsKey(partner))
+                continue;
+
+            Map<string, Set<string>> auxMap = possibleLinks + Map<string, Set<string>>({});
+            auxMap.remove(key);
+            auxMap.remove(partner);
+
+            Pair match(key, partner);
+            matching.add(match);
+            havePaired.add(matchRev);
+            bool isTrue = hasPerfectMatchingHelper(auxMap, matching);
+            if (isTrue) return true;
+            matching.remove(match);
+        }
+    }
     return false;
+}
+
+bool hasPerfectMatching(const Map<string, Set<string>>& possibleLinks, Set<Pair>& matching) {
+    return hasPerfectMatchingHelper(possibleLinks, matching);
 }
 
 Set<Pair> maximumWeightMatching(const Map<string, Map<string, int>>& possibleLinks) {
@@ -220,7 +251,8 @@ PROVIDED_TEST("hasPerfectMatching works on a pentagon of people.") {
     });
 
     Set<Pair> unused;
-    EXPECT(!hasPerfectMatching(links, unused));
+    bool result = hasPerfectMatching(links, unused);
+    EXPECT(!result);
 }
 
 PROVIDED_TEST("hasPerfectMatching works on a line of six people.") {
@@ -404,7 +436,8 @@ PROVIDED_TEST("hasPerfectMatching stress test: negative example (should take und
     }
 
     Set<Pair> matching;
-    EXPECT(!hasPerfectMatching(fromLinks(links), matching));
+    bool result = hasPerfectMatching(fromLinks(links), matching);
+    EXPECT(!result);
 }
 
 PROVIDED_TEST("hasPerfectMatching stress test: positive example (should take under a second).") {
@@ -443,7 +476,8 @@ PROVIDED_TEST("hasPerfectMatching stress test: positive example (should take und
     }
 
     Set<Pair> matching;
-    EXPECT(hasPerfectMatching(fromLinks(links), matching));
+    bool result = hasPerfectMatching(fromLinks(links), matching);
+    EXPECT(result);
     EXPECT(isPerfectMatching(fromLinks(links), matching));
 }
 

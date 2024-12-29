@@ -48,5 +48,6 @@ Set<string> permutationsRec(string str, string chosen) {
 }
 
 Set<string> permutationsOf(const string& str) {
-    return permutationsRec(str, "");
+    auto result =  permutationsRec(str, "");
+    return result;
 }

@@ -5,7 +5,7 @@
 using namespace std;
 
 
-int main() 
+int main___()
 {
     if (runSimpleTests(SELECTED_TESTS)) {
         return 0;

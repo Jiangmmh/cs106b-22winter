@@ -1,0 +1,11 @@
+release/diceSum.o
+release/Jaccard.o
+release/main.o
+release/OrgChart.o
+release/permString.o
+release/sublist.o
+release/XzibitWord.o
+release/MemoryDiagnostics.o
+release/TestDriver.o
+release/TestingGUI.o
+release/TextUtils.o

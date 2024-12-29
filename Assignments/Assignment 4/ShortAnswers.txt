@@ -1,20 +1,22 @@
 Q1:
-
-
-
+start = 'A'
+finish = 'C'
+temp = 'B'
+numDisks = 5
+totalMoves = 0
+ 
 
 Q2:
-
-
+The function is 'makeTheMagicHappen' in towerOfHanoiGUI.cpp
 
 
 Q3:
-
+31
 
 
 
 Q4:
-
+15
 
 
 

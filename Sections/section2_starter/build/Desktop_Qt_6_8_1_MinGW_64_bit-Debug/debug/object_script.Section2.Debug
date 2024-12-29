@@ -1,0 +1,11 @@
+debug/diceSum.o
+debug/Jaccard.o
+debug/main.o
+debug/OrgChart.o
+debug/permString.o
+debug/sublist.o
+debug/XzibitWord.o
+debug/MemoryDiagnostics.o
+debug/TestDriver.o
+debug/TestingGUI.o
+debug/TextUtils.o
