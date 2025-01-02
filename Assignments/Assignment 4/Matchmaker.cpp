@@ -1,33 +1,63 @@
 #include "Matchmaker.h"
 using namespace std;
 
-bool hasPerfectMatchingHelper(const Map<string, Set<string>>& possibleLinks, Set<Pair>& matching) {
-    // 存入matching的piar数量 == 总人数
+// 用于判断某个节点是否有多个孤立邻居（竞争同一个伙伴，必定无法完美匹配）
+bool isConflict(const Map<string, Set<string>>& possibleLinks, const string &key) {
+    if (possibleLinks.size() < 2) return false;
+
+    int singleCount = 0;
+    for (auto neighbor : possibleLinks[key]) {
+        if (possibleLinks[neighbor].size() == 1)
+            singleCount++;
+
+        if (singleCount > 1)
+            return true;
+    }
+
+    return false;
+}
+
+bool hasPerfectMatching(const Map<string, Set<string>>& possibleLinks, Set<Pair>& matching) {
+    // 所有人都匹配成功
     if (possibleLinks.isEmpty())
         return true;
-    if (possibleLinks.size() < 2)
+
+    // 若总节点数为奇数，不可能存在完美匹配
+    if (possibleLinks.size() % 2 != 0)
         return false;
 
+    // 用于记录已经匹配过的人
     Set<Pair> havePaired;
     for (string key : possibleLinks.keys()) {
+        // 判断孤立节点，无法完美匹配
         if (possibleLinks[key].isEmpty())
             return false;
+        // 判断是否存在两个以上的孤立邻居
+        if (isConflict(possibleLinks, key))
+            return false;
+
         for (string partner : possibleLinks[key]) {
             Pair matchRev(partner, key);
+
+            // 已经匹配过了，跳过
             if (havePaired.contains(matchRev))
                 continue;
 
             if (!possibleLinks.containsKey(partner))
                 continue;
 
-            Map<string, Set<string>> auxMap = possibleLinks + Map<string, Set<string>>({});
+            // 剔除已经匹配了的节点
+            auto auxMap = possibleLinks;
             auxMap.remove(key);
             auxMap.remove(partner);
 
+            // 保存匹配结果
             Pair match(key, partner);
             matching.add(match);
             havePaired.add(matchRev);
-            bool isTrue = hasPerfectMatchingHelper(auxMap, matching);
+
+            // 记录在该对匹配的条件下是否存在完美匹配
+            bool isTrue = hasPerfectMatching(auxMap, matching);
             if (isTrue) return true;
             matching.remove(match);
         }
@@ -35,14 +65,86 @@ bool hasPerfectMatchingHelper(const Map<string, Set<string>>& possibleLinks, Set
     return false;
 }
 
-bool hasPerfectMatching(const Map<string, Set<string>>& possibleLinks, Set<Pair>& matching) {
-    return hasPerfectMatchingHelper(possibleLinks, matching);
+
+// 辅助函数，用于计算选择出来的pair集合的weight之和
+int weightCount(const Map<string, Map<string, int>>& links, const Set<Pair> &matched) {
+    int ans = 0;
+    if (!matched.isEmpty()) {
+        for (auto match : matched) {
+            ans += links[match.first()][match.second()];
+        }
+    }
+    return ans;
+}
+
+// helper function
+Set<Pair> maximumWeightMatchingHelper(const Map<string, Map<string, int>>& possibleLinks, const Set<Pair> &matched) {
+    // 没有更多的pair
+    if (possibleLinks.size() < 2) {
+        return matched;
+    }
+
+    // 记录记录所有pair和weight和
+    Map<Set<Pair>, int> weightPairs;
+
+    // 1. 不考虑第一个key
+
+    // 取出第一个key
+    auto firstKey = possibleLinks.firstKey();
+
+    // 创建副本，并将第一个key剔除
+    auto aux = possibleLinks;
+    aux.remove(firstKey);
+
+    // 剔除其他人与第一个key的关系
+    for (auto key : possibleLinks) {
+        if (possibleLinks[key].containsKey(firstKey)) {
+            aux[key].remove(firstKey);
+        }
+    }
+
+    // 递归得到剔除掉第一个key之后的最大权重集合
+    auto matchWithOutThis = maximumWeightMatchingHelper(aux, matched);
+
+    // 将其加入weightPairs中
+    weightPairs[matchWithOutThis] = weightCount(possibleLinks, matchWithOutThis);
+
+    // 2. 考虑第一个key
+    for (auto secondKey : possibleLinks[firstKey].keys()) {
+        // 剪枝，剔除对权重和没有帮助的pair
+        if (possibleLinks[firstKey][secondKey] <= 0)
+            continue;
+
+        // 考虑第一个key与所有邻居的可能性
+        aux = possibleLinks;
+        aux.remove(firstKey);
+        aux.remove(secondKey);
+
+        // 剔除这已匹配的两个结点与其他结点的关系
+        for (auto key : aux.keys()) {
+            if (aux[key].containsKey(firstKey))
+                aux[key].remove(firstKey);
+            if (aux[key].containsKey(secondKey))
+                aux[key].remove(secondKey);
+        }
+
+        // 获取匹配集合并将其权重和加入weightPairs
+        Pair newMatch = {firstKey, secondKey};
+        auto matchWithThis = maximumWeightMatchingHelper(aux, matched + newMatch);
+        weightPairs[matchWithThis] = weightCount(possibleLinks, matchWithThis);
+    }
+
+    // 从weightPairs中取出权重和最大的匹配集合
+    Set<Pair> bestMatch = weightPairs.firstKey();
+    for (auto pairs : weightPairs) {
+        if (weightPairs[bestMatch] < weightPairs[pairs])
+            bestMatch = pairs;
+    }
+    return bestMatch;
 }
 
 Set<Pair> maximumWeightMatching(const Map<string, Map<string, int>>& possibleLinks) {
-    /* TODO: Delete this comment and these remaining lines, then implement this function. */
-    (void) possibleLinks;
-    return { };
+    return maximumWeightMatchingHelper(possibleLinks, Set<Pair>({}));
 }
 
 /* * * * * Test Cases Below This Point * * * * */
