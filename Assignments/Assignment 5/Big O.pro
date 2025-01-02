@@ -6,7 +6,7 @@
 #   build client program using installed static library
 ###############################################################################
 
-SPL_VERSION = 2021.1
+SPL_VERSION = 2024.1
 SPL_URL = https://web.stanford.edu/dept/cs_edu/qt
 
 TEMPLATE    =   app
