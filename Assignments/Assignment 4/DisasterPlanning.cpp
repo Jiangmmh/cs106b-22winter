@@ -1,13 +1,64 @@
 #include "DisasterPlanning.h"
 using namespace std;
 
-/* TODO: Refer to DisasterPlanning.h for more information about this function.
- * Then, delete this comment.
- */
+
+bool canBeMadeDisasterReadyHelper(const Map<string, Set<string>>& roadNetwork,
+                                  int numCities,
+                                  Set<string>& supplyLocations,
+                                  Set<string>& uncovered) {
+    // 所有城市都被覆盖
+    if (uncovered.isEmpty())
+        return true;
+
+    // 可准备应急资源的城市数量大于等于城市总数
+    if (roadNetwork.size() <= numCities) {
+        // 将所有城市添加到供应地址中
+        supplyLocations += uncovered;
+        return true;
+    }
+
+    if (numCities == 0)
+        return false;
+
+    string first = uncovered.first();
+
+    supplyLocations.add(first);
+    auto chooseThis = uncovered - first - roadNetwork[first];
+    bool isReady = canBeMadeDisasterReadyHelper(roadNetwork,
+                                                numCities-1,
+                                                supplyLocations,
+                                                chooseThis);
+    if (isReady)
+        return true;
+
+    supplyLocations.remove(first);
+
+    for (string neighbor : roadNetwork[first]) {
+        supplyLocations.add(neighbor);
+        chooseThis = uncovered - neighbor - roadNetwork[neighbor];
+        isReady = canBeMadeDisasterReadyHelper(roadNetwork,
+                                               numCities-1,
+                                               supplyLocations,
+                                               chooseThis);
+        if (isReady)
+            return true;
+        supplyLocations.remove(neighbor);
+    }
+
+    return false;
+}
+
 bool canBeMadeDisasterReady(const Map<string, Set<string>>& roadNetwork,
                             int numCities,
                             Set<string>& supplyLocations) {
+    // 错误处理
+    if (numCities < 0)
+        error("error.");
 
+    Set<string> uncovered;
+    for (string city : roadNetwork.keys())
+        uncovered.add(city);
+    return canBeMadeDisasterReadyHelper(roadNetwork, numCities, supplyLocations, uncovered);
 }
 
 
