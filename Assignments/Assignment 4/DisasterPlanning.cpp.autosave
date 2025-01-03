@@ -7,7 +7,7 @@ using namespace std;
 bool canBeMadeDisasterReady(const Map<string, Set<string>>& roadNetwork,
                             int numCities,
                             Set<string>& supplyLocations) {
-
+    
 }
 
 
